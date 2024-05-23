@@ -96,6 +96,10 @@ impl Contract {
         self.auction_info.clone()
     }
 
+    pub fn get_tokens_per_auction(&self) -> Balance {
+        return self.tokens_per_auction;
+    }
+
     #[payable]
     pub fn claim_tokens(&mut self) -> String {
         let deposit = env::attached_deposit();
