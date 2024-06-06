@@ -1,7 +1,7 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{
-    env, near_bindgen, AccountId, Balance, PanicOnDefault, Promise, Gas, require, log
+    env, near_bindgen, AccountId, Balance, PanicOnDefault, Promise, Gas, require, log, assert_one_yocto
 };
 
 pub use crate::xcc::*;
@@ -10,7 +10,6 @@ pub use crate::migrate::*;
 mod xcc;
 mod migrate;
 
-const YOCTO_NEAR: u128 = 1_000_000_000_000_000_000_000_000;
 const YOCTO_FT: u128 = 1_000_000_000_000_000_000;
 
 pub type EpochHeight = u64;
@@ -93,7 +92,7 @@ impl Contract {
     }
 
     pub fn get_auction_info(&self) -> AuctionInfo {
-        self.auction_info.clone()
+        return self.auction_info.clone();
     }
 
     pub fn get_tokens_per_auction(&self) -> Balance {
@@ -117,6 +116,8 @@ impl Contract {
         }
 
         let highest_bidder = self.auction_info.highest_bidder.clone();
+
+        assert_one_yocto();
         
         ext_c::ft_transfer(
             (self.tokens_per_auction.clone()*YOCTO_FT).to_string(),
@@ -150,6 +151,8 @@ impl Contract {
         }
     
         if self.auction_info.start_time == 0 {
+            require!(amount < 1000000000000000000000000, "Deposit must be greater than or equal to 1 NEAR");
+
             let new_start_time = current_timestamp;
             let new_end_time = current_timestamp + self.auction_duration;
             self.auction_info = AuctionInfo {
@@ -165,10 +168,16 @@ impl Contract {
         }
     
         if current_timestamp >= self.auction_info.start_time && current_timestamp <= self.auction_info.end_time {
-
+            require!(amount < (self.auction_info.highest_bid+100000000000000000000000), "The bid must be higher than the current one by at least 0.1 NEAR");
             if amount > self.auction_info.highest_bid {
 
                 Promise::new(self.auction_info.highest_bidder.clone().parse::<AccountId>().unwrap()).transfer(self.auction_info.highest_bid);
+
+                // Verificar si quedan menos de 10 minutos, entonces volver a iniciar 10 minutos para la nueva subasta
+                if (self.auction_info.end_time-current_timestamp) < 10 {
+                    // Sumar 10 minutos a la subasta
+                    self.auction_info.end_time += 600000000000;
+                }     
 
                 self.auction_info.highest_bid = amount;
                 self.auction_info.highest_bidder = bidder.to_string();
@@ -195,6 +204,7 @@ impl Contract {
 
                 self.auction_info.claimed = true;
             }
+            require!(amount < 1000000000000000000000000, "Deposit must be greater than or equal to 1 NEAR");
             let new_start_time = current_timestamp;
             let new_end_time = current_timestamp + self.auction_duration;
             self.auction_info = AuctionInfo {
@@ -210,6 +220,11 @@ impl Contract {
         }
     }
     
+    pub fn change_tokens_supply(&mut self, amount: Balance) {
+        self.assert_owner();
+        self.total_supply = amount;
+        self.current_supply= amount;
+    }
 
     pub fn change_tokens_per_auction(&mut self, amount: Balance) {
         self.assert_owner();

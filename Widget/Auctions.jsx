@@ -166,7 +166,7 @@ const ItemBackground = styled.div`
 const ItemContainer = styled.div`
         margin-top: 30px;
         box-sizing: border-box;
-        min-width: 320px;
+        min-width: 375px;
         width: 700px;
         padding: 0px 32px;
         position: relative;
@@ -243,6 +243,7 @@ const Button = styled.button`
     width: 120px;
     height: 54px;
     margin-left: 5px;
+    margin-top: 10px;
 
     &:hover{
       background: rgb(45, 50, 97);
@@ -269,6 +270,7 @@ const ButtonDisabled = styled.button`
     width: 120px;
     height: 54px;
     margin-left: 5px;
+    margin-top: 10px;
 `;
 
 const Input = styled.input`
@@ -287,6 +289,7 @@ const Input = styled.input`
     border: none;
     margin-right: 5px;
     text-align: center;
+    margin-top: 10px;
 `;
 
 // FETCH CSS
