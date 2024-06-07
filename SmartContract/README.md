@@ -49,7 +49,25 @@ Reclamar tokens:
 
     near call $ID claim_tokens '{}' --accountId auctions1.testnet --gas 300000000000000 --deposit 0.000000000000000000000001
 
+Cambiar duración subasta:
 
+    near call $ID change_auction_duration '{"new_duration":900000000000}' --accountId $ID --gas 300000000000000
+
+Finalizar subasta:
+
+    near call $ID finish_auction  --accountId $ID --gas 300000000000000
+
+Registrar cuenta en contrato
+
+    near call lion.tokens.testnet storage_deposit '{"account_id":"yairtest1.testnet"}' --accountId yairnava.testnet --deposit 0.01
+
+    near call lion.tokens.testnet ft_transfer '{"receiver_id":"lion.tokens.testnet", "amount": "0"}' --accountId yairtest2.testnet --depositYocto
+
+Verificar cuenta registrada
+    
+    near view lion.tokens.testnet storage_balance_of '{"account_id":"syi216.testnet"}'
+
+    near view lion.tokens.testnet ft_balance_of '{"account_id":"syi216.testnet"}'
 
 
 ## Construido con 🛠️

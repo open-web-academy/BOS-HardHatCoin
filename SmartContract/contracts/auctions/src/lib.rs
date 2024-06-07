@@ -149,7 +149,7 @@ impl Contract {
         }
     
         if self.auction_info.start_time == 0 {
-            require!(amount < 1000000000000000000000000, "Deposit must be greater than or equal to 1 NEAR");
+            //require!(amount < 1000000000000000000000000, "Deposit must be greater than or equal to 1 NEAR");
 
             let new_start_time = current_timestamp;
             let new_end_time = current_timestamp + self.auction_duration;
@@ -200,7 +200,7 @@ impl Contract {
 
                 self.auction_info.claimed = true;
             }
-            require!(amount < 1000000000000000000000000, "Deposit must be greater than or equal to 1 NEAR");
+            //require!(amount < 1000000000000000000000000, "Deposit must be greater than or equal to 1 NEAR");
             let new_start_time = current_timestamp;
             let new_end_time = current_timestamp + self.auction_duration;
             self.auction_info = AuctionInfo {
@@ -254,4 +254,8 @@ impl Contract {
         minter.as_str() == self.owner_id.as_str()
     }
 
+    pub fn finish_auction(&mut self) {
+        self.assert_owner();
+        self.auction_info.end_time = 0;
+    }
 }

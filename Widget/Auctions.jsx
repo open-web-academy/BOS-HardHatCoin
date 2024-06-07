@@ -12,6 +12,17 @@ const [newBid, setNewBit] = useState(0);
 const [minBid, setMinBit] = useState(0);
 const [validBit, setValidBit] = useState(true);
 
+const storageBalance = Near.view(
+  "lion.tokens.testnet",
+  "storage_balance_of",
+  { account_id: "yairtest1.testnet" },
+  null,
+  true
+);
+
+console.log("storageBalance");
+console.log(storageBalance);
+
 const tokensPerAuction = Near.view(
   "auctionshat.testnet",
   "get_tokens_per_auction",
@@ -324,13 +335,6 @@ return (
         <ItemHeader>
           <ItemTitle>
             <label>Current Supply: {currentSupply} HAT's</label>
-            <img
-              src="https://raw.githubusercontent.com/open-web-academy/BOS-HardHatCoin/main/assets/hat.png"
-              style={{
-                marginLeft: "10px",
-                height: "40px",
-              }}
-            ></img>
           </ItemTitle>
         </ItemHeader>
         <ItemBody>
