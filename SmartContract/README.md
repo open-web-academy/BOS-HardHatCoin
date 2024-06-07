@@ -23,13 +23,13 @@ Obtener balance actual de tokens:
 
     near view $ID get_current_supply
 
-Obtener información de la ultima subasta:
-
-    near view $ID get_last_auction_info
-
 Cambiar contrato de ft:
 
     near call $ID change_ft_address '{"ft_address":"lion.tokens.testnet"}' --accountId $ID --gas 300000000000000
+
+Cambiar supply de ft:
+
+    near call $ID change_tokens_supply '{"amount":1000000}' --accountId $ID --gas 300000000000000
 
 Consultar subasta:
 

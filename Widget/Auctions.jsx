@@ -248,9 +248,9 @@ const Button = styled.button`
     &:hover{
       background: rgb(45, 50, 97);
       color: white;
-        border-color: #F5AD00;
-        border-width: 1.5px;
-        border-style: solid;
+      border-color: #F5AD00;
+      border-width: 1.5px;
+      border-style: solid;
     }
 `;
 
@@ -262,15 +262,18 @@ const ButtonDisabled = styled.button`
     justify-content: center;
     border-radius: 12px !important;
     max-width: 230px;
-    background-color: #F5AD00 !important;
     padding: 10px;
     font-weight: 500;
     border: 0px;
-    color: black;
     width: 120px;
     height: 54px;
     margin-left: 5px;
     margin-top: 10px;
+    background: rgb(45, 50, 97);
+    color: white;
+    border-color: #F5AD00;
+    border-width: 1.5px;
+    border-style: solid;
 `;
 
 const Input = styled.input`
@@ -439,27 +442,33 @@ return (
                   marginTop: "30px",
                 }}
               >
-                <InputGroup>
-                  {auctionStatus == "active" ? (
-                    <Input
-                      type="number"
-                      placeholder={minBid.toFixed(1) + " or more"}
-                      onChange={(e) => setNewBit(e.target.value)}
-                    />
-                  ) : (
-                    <Input
-                      type="number"
-                      placeholder="0.1 or more"
-                      onChange={(e) => {
-                        setNewBit(e.target.value);
-                        setValidBit(true);
-                      }}
-                    />
-                  )}
-                  <Button onClick={addBid}>
-                    <i className="bi bi-coin mx-1"></i> Place bid
-                  </Button>
-                </InputGroup>
+                {context.accountId ? (
+                  <InputGroup>
+                    {auctionStatus == "active" ? (
+                      <Input
+                        type="number"
+                        placeholder={minBid.toFixed(1) + " or more"}
+                        onChange={(e) => setNewBit(e.target.value)}
+                      />
+                    ) : (
+                      <Input
+                        type="number"
+                        placeholder="0.1 or more"
+                        onChange={(e) => {
+                          setNewBit(e.target.value);
+                          setValidBit(true);
+                        }}
+                      />
+                    )}
+                    <Button onClick={addBid}>
+                      <i className="bi bi-coin mx-1"></i> Place bid
+                    </Button>
+                  </InputGroup>
+                ) : (
+                  <InputGroup>
+                    <ButtonDisabled>Login to bid</ButtonDisabled>
+                  </InputGroup>
+                )}
               </div>
             </div>
 

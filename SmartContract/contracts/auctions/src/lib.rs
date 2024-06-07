@@ -138,10 +138,8 @@ impl Contract {
     #[payable]
     pub fn start_or_place_bid(&mut self) -> String {
         let bidder = env::predecessor_account_id();
-        let amount = env::attached_deposit()-1;
+        let amount = env::attached_deposit();
         let current_timestamp = env::block_timestamp();
-
-        log!("highest_bid_temp {}",self.auction_info.highest_bid_temp);
 
         if amount > self.auction_info.highest_bid_temp {
             self.auction_info.highest_bid_temp = amount;
@@ -168,14 +166,12 @@ impl Contract {
         }
     
         if current_timestamp >= self.auction_info.start_time && current_timestamp <= self.auction_info.end_time {
-            require!(amount < (self.auction_info.highest_bid+100000000000000000000000), "The bid must be higher than the current one by at least 0.1 NEAR");
+            //require!(amount > (self.auction_info.highest_bid+100000000000000000000000), "The bid must be higher than the current one by at least 0.1 NEAR");
             if amount > self.auction_info.highest_bid {
 
                 Promise::new(self.auction_info.highest_bidder.clone().parse::<AccountId>().unwrap()).transfer(self.auction_info.highest_bid);
 
-                // Verificar si quedan menos de 10 minutos, entonces volver a iniciar 10 minutos para la nueva subasta
-                if (self.auction_info.end_time-current_timestamp) < 10 {
-                    // Sumar 10 minutos a la subasta
+                if (self.auction_info.end_time-current_timestamp) < 600000000000 {
                     self.auction_info.end_time += 600000000000;
                 }     
 
