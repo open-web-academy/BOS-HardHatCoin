@@ -49,6 +49,8 @@ pub struct AuctionInfo {
     highest_bid_temp: Balance,
 }
 
+// Crear estructura de ganadores [Account, Bid, HatAmount]
+
 
 #[near_bindgen]
 impl Contract {
@@ -141,6 +143,8 @@ impl Contract {
         let amount = env::attached_deposit();
         let current_timestamp = env::block_timestamp();
 
+        require!( self.current_supply >= self.tokens_per_auction, "Current supply is less than the number of tokens per auction")
+
         if amount > self.auction_info.highest_bid_temp {
             self.auction_info.highest_bid_temp = amount;
         } else {
@@ -149,7 +153,7 @@ impl Contract {
         }
     
         if self.auction_info.start_time == 0 {
-            //require!(amount < 1000000000000000000000000, "Deposit must be greater than or equal to 1 NEAR");
+            require!( amount >= 2000000000000000000000000, "The bid must be higher than or equal to 2 NEAR")
 
             let new_start_time = current_timestamp;
             let new_end_time = current_timestamp + self.auction_duration;
@@ -166,7 +170,8 @@ impl Contract {
         }
     
         if current_timestamp >= self.auction_info.start_time && current_timestamp <= self.auction_info.end_time {
-            //require!(amount > (self.auction_info.highest_bid+100000000000000000000000), "The bid must be higher than the current one by at least 0.1 NEAR");
+            require!( amount >= (self.auction_info.highest_bid+500000000000000000000000), "The bid must be higher than the current one by at least 0.5 NEAR")
+
             if amount > self.auction_info.highest_bid {
 
                 Promise::new(self.auction_info.highest_bidder.clone().parse::<AccountId>().unwrap()).transfer(self.auction_info.highest_bid);
@@ -200,7 +205,9 @@ impl Contract {
 
                 self.auction_info.claimed = true;
             }
-            //require!(amount < 1000000000000000000000000, "Deposit must be greater than or equal to 1 NEAR");
+
+            require!( amount >= 2000000000000000000000000, "The bid must be higher than or equal to 2 NEAR")
+            
             let new_start_time = current_timestamp;
             let new_end_time = current_timestamp + self.auction_duration;
             self.auction_info = AuctionInfo {

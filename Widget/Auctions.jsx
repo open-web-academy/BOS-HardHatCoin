@@ -12,17 +12,6 @@ const [newBid, setNewBit] = useState(0);
 const [minBid, setMinBit] = useState(0);
 const [validBit, setValidBit] = useState(true);
 
-const storageBalance = Near.view(
-  "lion.tokens.testnet",
-  "storage_balance_of",
-  { account_id: "yairtest1.testnet" },
-  null,
-  true
-);
-
-console.log("storageBalance");
-console.log(storageBalance);
-
 const tokensPerAuction = Near.view(
   "auctionshat.testnet",
   "get_tokens_per_auction",
@@ -48,7 +37,7 @@ const auction = Near.view(
 );
 
 if (tokensPerAuction && currentSupply && auction) {
-  setMinBit(auction.highest_bid / 1e24 + 0.1);
+  setMinBit(auction.highest_bid / 1e24 + 0.5);
   setStartTime(auction.start_time.toString().substring(0, 13));
   setEndTime(auction.end_time.toString().substring(0, 13));
   setCurrentBid(auction.highest_bid / 1e24);
@@ -282,9 +271,7 @@ const ButtonDisabled = styled.button`
     margin-top: 10px;
     background: rgb(45, 50, 97);
     color: white;
-    border-color: #F5AD00;
-    border-width: 1.5px;
-    border-style: solid;
+    cursor: default !important;
 `;
 
 const Input = styled.input`
@@ -446,18 +433,28 @@ return (
                   marginTop: "30px",
                 }}
               >
-                {context.accountId ? (
+                {currentSupply < tokensPerAuction ? (
+                  <InputGroup>
+                    <ButtonDisabled>
+                      There are no hats left for auction
+                    </ButtonDisabled>
+                  </InputGroup>
+                ) : context.accountId ? (
                   <InputGroup>
                     {auctionStatus == "active" ? (
                       <Input
                         type="number"
-                        placeholder={minBid.toFixed(1) + " or more"}
+                        min={minBid.toFixed(1)}
+                        step="0.5"
+                        placeholder={minBid.toFixed(1) + "⋈ or more"}
                         onChange={(e) => setNewBit(e.target.value)}
                       />
                     ) : (
                       <Input
                         type="number"
-                        placeholder="0.1 or more"
+                        min="2"
+                        step="0.5"
+                        placeholder="2 ⋈ or more"
                         onChange={(e) => {
                           setNewBit(e.target.value);
                           setValidBit(true);
@@ -470,7 +467,7 @@ return (
                   </InputGroup>
                 ) : (
                   <InputGroup>
-                    <ButtonDisabled>Login to bid</ButtonDisabled>
+                    <ButtonDisabled>Please login to bid</ButtonDisabled>
                   </InputGroup>
                 )}
               </div>
