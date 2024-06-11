@@ -59,6 +59,7 @@ Finalizar subasta:
 
 Registrar cuenta en contrato
 
+1.001
     near call lion.tokens.testnet storage_deposit '{"account_id":"yairtest1.testnet"}' --accountId yairnava.testnet --deposit 0.01
 
     near call lion.tokens.testnet ft_transfer '{"receiver_id":"lion.tokens.testnet", "amount": "0"}' --accountId yairtest2.testnet --depositYocto
@@ -67,7 +68,7 @@ Verificar cuenta registrada
     
     near view lion.tokens.testnet storage_balance_of '{"account_id":"syi216.testnet"}'
 
-    near view lion.tokens.testnet ft_balance_of '{"account_id":"syi216.testnet"}'
+    near view lion.tokens.testnet ft_balance_of '{"account_id":"erictest2.testnet"}'
 
 
 ## Construido con 🛠️
@@ -75,3 +76,13 @@ Verificar cuenta registrada
 * [Rust Toolchain](https://docs.near.org/docs/develop/contracts/rust/intro#installing-the-rust-toolchain)
 * [NEAR CLI](https://docs.near.org/docs/tools/near-cli) - Herramienta de interfaz de línea de comandos para interactuar con cuentas y contratos inteligentes en NEAR.
 * [yarn](https://classic.yarnpkg.com/en/docs/install#mac-stable)
+
+
+
+const auction = Near.view(
+  "auctionshat.testnet",
+  "has storage balance",
+  {account_id:"syi216.testnet"},
+  null,
+  true
+);

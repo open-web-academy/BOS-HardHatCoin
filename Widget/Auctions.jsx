@@ -1,3 +1,5 @@
+const auctionsContract = "auctionshat.testnet";
+const ftContract = "lion.tokens.testnet";
 const [date, setDate] = useState(null);
 const [startTime, setStartTime] = useState(0);
 const [endTime, setEndTime] = useState(0);
@@ -11,9 +13,10 @@ const [auctionStatus, setAuctionStatus] = useState("");
 const [newBid, setNewBit] = useState(0);
 const [minBid, setMinBit] = useState(0);
 const [validBit, setValidBit] = useState(true);
+const [validBitAmount, setValidBitAmount] = useState(true);
 
 const tokensPerAuction = Near.view(
-  "auctionshat.testnet",
+  auctionsContract,
   "get_tokens_per_auction",
   null,
   null,
@@ -21,7 +24,7 @@ const tokensPerAuction = Near.view(
 );
 
 const currentSupply = Near.view(
-  "auctionshat.testnet",
+  auctionsContract,
   "get_current_supply",
   null,
   null,
@@ -29,9 +32,17 @@ const currentSupply = Near.view(
 );
 
 const auction = Near.view(
-  "auctionshat.testnet",
+  auctionsContract,
   "get_auction_info",
   null,
+  null,
+  true
+);
+
+const winnerHasStorageBalance = Near.view(
+  ftContract,
+  "storage_balance_of",
+  { account_id: auction.highest_bidder },
   null,
   true
 );
@@ -113,37 +124,84 @@ const TimerContent = () => {
 };
 
 const addBid = () => {
-  console.log("auctionStatus: " + auctionStatus);
-  if (auctionStatus == "active") {
-    if (newBid >= currentBid + 0.1) {
-      setValidBit(true);
-      Near.call(
-        "auctionshat.testnet",
-        "start_or_place_bid",
-        {},
-        "300000000000000",
-        newBid * 1e24 + 1
-      );
-    } else {
-      setMinBit(currentBid + 0.1);
-      setValidBit(false);
-      console.log("Bid must be >= " + currentBid + 0.1);
-    }
+  console.log("addBid");
+  if (newBid >= currentBid + 0.5 && newBid % 0.5 == 0) {
+    setValidBit(true);
+    setValidBitAmount(0);
+    Near.call(
+      "auctionshat.testnet",
+      "start_or_place_bid",
+      {},
+      "300000000000000",
+      newBid * 1e24
+    );
+  } else {
+    setValidBit(false);
+    setValidBitAmount(currentBid + 0.5);
   }
-  if (auctionStatus == "finish") {
-    if (newBid >= 0.1) {
+};
+
+const claimTokens = () => {
+  console.log("claimTokens");
+  Near.call(auctionsContract, "claim_tokens", {}, "300000000000000", 1);
+};
+
+const sendTokensAndAddBid = () => {
+  console.log("sendTokensAndAddBid");
+  if (winnerHasStorageBalance) {
+    if (newBid >= 2 && newBid % 0.5 === 0) {
       setValidBit(true);
-      Near.call(
-        "auctionshat.testnet",
-        "start_or_place_bid",
-        {},
-        "300000000000000",
-        newBid * 1e24 + 1
-      );
+      setValidBitAmount(0);
+      Near.call([
+        {
+          contractName: auctionsContract,
+          methodName: "claim_tokens",
+          args: {},
+          gas: 300000000000000,
+          deposit: 1,
+        },
+        {
+          contractName: auctionsContract,
+          methodName: "start_or_place_bid",
+          args: {},
+          gas: 300000000000000,
+          deposit: newBid * 1e24,
+        },
+      ]);
     } else {
-      setMinBit(0.1);
       setValidBit(false);
-      console.log("Bid must be >= " + 0.1);
+      setValidBitAmount(2);
+    }
+  } else {
+    if (newBid >= 2 && newBid % 0.5 === 0) {
+      setValidBit(true);
+      setValidBitAmount(0);
+      Near.call([
+        {
+          contractName: ftContract,
+          methodName: "storage_deposit",
+          args: { account_id: auction.highest_bidder },
+          gas: 300000000000000,
+          deposit: 1 * 1e22,
+        },
+        {
+          contractName: auctionsContract,
+          methodName: "claim_tokens",
+          args: {},
+          gas: 300000000000000,
+          deposit: 1,
+        },
+        {
+          contractName: auctionsContract,
+          methodName: "start_or_place_bid",
+          args: {},
+          gas: 300000000000000,
+          deposit: newBid * 1e24,
+        },
+      ]);
+    } else {
+      setValidBit(false);
+      setValidBitAmount(2);
     }
   }
 };
@@ -373,15 +431,31 @@ return (
               style={{ alignContent: "center", marginTop: "10px" }}
             >
               <div class="row">
-                <div class="col-12">
-                  <div style={{ textAlign: "center", fontSize: "20px" }}>
-                    <label style={{ fontWeight: "bold" }}>
-                      {auctionStatus == "finish" ? "Winner" : "Current bidder"}
-                    </label>
-                    <br />
-                    <label style={{ marginTop: "10px" }}>{currentBidder}</label>
+                {auctionStatus != "" && (
+                  <div class="col-12">
+                    {context.accountId == currentBidder ? (
+                      <div style={{ textAlign: "center", fontSize: "20px" }}>
+                        <label style={{ fontWeight: "bold" }}>
+                          {auctionStatus == "finish"
+                            ? "You Won!"
+                            : "You are winning!"}
+                        </label>
+                      </div>
+                    ) : (
+                      <div style={{ textAlign: "center", fontSize: "20px" }}>
+                        <label style={{ fontWeight: "bold" }}>
+                          {auctionStatus == "finish"
+                            ? "Winner"
+                            : "Current bidder"}
+                        </label>
+                        <br />
+                        <label style={{ marginTop: "10px" }}>
+                          {currentBidder}
+                        </label>
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -424,53 +498,64 @@ return (
             )}
 
             <div class="col-12">
-              <div
-                style={{
-                  height: "100%",
-                  display: "flex",
-                  "justify-content": "center",
-                  "align-items": "center",
-                  marginTop: "30px",
-                }}
-              >
-                {currentSupply < tokensPerAuction ? (
-                  <InputGroup>
-                    <ButtonDisabled>
-                      There are no hats left for auction
-                    </ButtonDisabled>
-                  </InputGroup>
-                ) : context.accountId ? (
-                  <InputGroup>
-                    {auctionStatus == "active" ? (
-                      <Input
-                        type="number"
-                        min={minBid.toFixed(1)}
-                        step="0.5"
-                        placeholder={minBid.toFixed(1) + "⋈ or more"}
-                        onChange={(e) => setNewBit(e.target.value)}
-                      />
-                    ) : (
-                      <Input
-                        type="number"
-                        min="2"
-                        step="0.5"
-                        placeholder="2 ⋈ or more"
-                        onChange={(e) => {
-                          setNewBit(e.target.value);
-                          setValidBit(true);
-                        }}
-                      />
-                    )}
-                    <Button onClick={addBid}>
-                      <i className="bi bi-coin mx-1"></i> Place bid
-                    </Button>
-                  </InputGroup>
-                ) : (
-                  <InputGroup>
-                    <ButtonDisabled>Please login to bid</ButtonDisabled>
-                  </InputGroup>
-                )}
-              </div>
+              {auctionStatus != "" && (
+                <div
+                  style={{
+                    height: "100%",
+                    display: "flex",
+                    "justify-content": "center",
+                    "align-items": "center",
+                    marginTop: "30px",
+                  }}
+                >
+                  {currentSupply < tokensPerAuction ? (
+                    <InputGroup>
+                      <ButtonDisabled>
+                        There are no hats left for auction
+                      </ButtonDisabled>
+                    </InputGroup>
+                  ) : context.accountId ? (
+                    <InputGroup>
+                      {auctionStatus == "active" ? (
+                        <>
+                          <Input
+                            type="number"
+                            min={minBid.toFixed(1)}
+                            step="0.5"
+                            placeholder={minBid.toFixed(1) + "⋈ or more"}
+                            onChange={(e) => setNewBit(e.target.value)}
+                          />
+                          <Button onClick={addBid}>Place bid</Button>
+                        </>
+                      ) : context.accountId == currentBidder ? (
+                        <>
+                          <Button onClick={claimTokens}>Claim HAT's</Button>
+                        </>
+                      ) : (
+                        <>
+                          <Input
+                            type="number"
+                            min="2"
+                            step="0.5"
+                            placeholder="2 ⋈ or more"
+                            onChange={(e) => {
+                              setNewBit(e.target.value);
+                              setValidBit(true);
+                            }}
+                          />
+                          <Button onClick={sendTokensAndAddBid}>
+                            Place bid
+                          </Button>
+                        </>
+                      )}
+                    </InputGroup>
+                  ) : (
+                    <InputGroup>
+                      <ButtonDisabled>Please login to bid</ButtonDisabled>
+                    </InputGroup>
+                  )}
+                </div>
+              )}
             </div>
 
             <div class="col-12">
@@ -484,7 +569,10 @@ return (
                 }}
               >
                 {!validBit && (
-                  <label>The bid must be equal or greater than {minBid}</label>
+                  <label>
+                    The bid must be equal or greater than {validBitAmount} ⋈
+                    with increments of 0.5
+                  </label>
                 )}
               </div>
             </div>

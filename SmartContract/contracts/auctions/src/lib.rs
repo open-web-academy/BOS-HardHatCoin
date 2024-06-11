@@ -143,7 +143,7 @@ impl Contract {
         let amount = env::attached_deposit();
         let current_timestamp = env::block_timestamp();
 
-        require!( self.current_supply >= self.tokens_per_auction, "Current supply is less than the number of tokens per auction")
+        require!( self.current_supply >= self.tokens_per_auction, "Current supply is less than the number of tokens per auction");
 
         if amount > self.auction_info.highest_bid_temp {
             self.auction_info.highest_bid_temp = amount;
@@ -153,7 +153,7 @@ impl Contract {
         }
     
         if self.auction_info.start_time == 0 {
-            require!( amount >= 2000000000000000000000000, "The bid must be higher than or equal to 2 NEAR")
+            require!( amount >= 2000000000000000000000000, "The bid must be higher than or equal to 2 NEAR");
 
             let new_start_time = current_timestamp;
             let new_end_time = current_timestamp + self.auction_duration;
@@ -170,7 +170,7 @@ impl Contract {
         }
     
         if current_timestamp >= self.auction_info.start_time && current_timestamp <= self.auction_info.end_time {
-            require!( amount >= (self.auction_info.highest_bid+500000000000000000000000), "The bid must be higher than the current one by at least 0.5 NEAR")
+            require!(amount <  self.auction_info.highest_bid+490000000000000000000000, "The bid must be higher than the current one by at least 0.5 NEAR");
 
             if amount > self.auction_info.highest_bid {
 
@@ -192,21 +192,8 @@ impl Contract {
 
             return "The bid is less than or equal to the current one".to_string();
         } else {
-            if !self.auction_info.claimed {
-                ext_c::ft_transfer(
-                    (self.tokens_per_auction.clone()*YOCTO_FT).to_string(),
-                    self.auction_info.highest_bidder.clone().to_string(),
-                    self.ft_address.clone(),
-                    1,
-                    Gas(100_000_000_000_000)
-                );
 
-                self.current_supply -= self.tokens_per_auction;
-
-                self.auction_info.claimed = true;
-            }
-
-            require!( amount >= 2000000000000000000000000, "The bid must be higher than or equal to 2 NEAR")
+            require!( amount >= 2000000000000000000000000, "The bid must be higher than or equal to 2 NEAR");
             
             let new_start_time = current_timestamp;
             let new_end_time = current_timestamp + self.auction_duration;
