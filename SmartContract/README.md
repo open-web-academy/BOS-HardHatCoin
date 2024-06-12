@@ -7,14 +7,13 @@ Contrato de subastas para el token HAT.
 Asignamos el identificador de nuestro contrato desplegado a una constante (Sustituir el ID por el del contrato desplegado):
 
     Auctions
-    ID=auctionshat.testnet
+    ID=auctionshat1.testnet
     echo $ID
 
 Inicialización del contrato:
 
     Auctions
-    near call $ID init_contract '{"owner_id":"auctionshat.testnet","ft_address":"lion.tokens.testnet",
-    "total_supply":1000, "tokens_per_auction": 100,  "auction_duration":3600000000000}' --accountId $ID
+    near call $ID init_contract '{"owner_id":"auctionshat1.testnet","ft_address":"lion.dev-1634069815926-48042760709553","total_supply":1000000000, "tokens_per_auction": 1000,  "auction_duration":900000000000}' --accountId $ID
 
 ### Auctions
 
@@ -39,12 +38,6 @@ Crear puja:
 
     near call $ID start_or_place_bid '{ }' --accountId yairnava.testnet --gas 300000000000000 --deposit 1.000000000000000000000001
 
-Probar intercambio de tokens:
-
-    near call $ID transfer_near '{"bidder":"yairnava.testnet", "amount":1}' --accountId $ID --gas 300000000000000
-
-    near call $ID transfer_ft '{"bidder":"yairnava.testnet", "amount":1}' --accountId $ID --gas 300000000000000 --deposit 0.000000000000000000000001
-
 Reclamar tokens:
 
     near call $ID claim_tokens '{}' --accountId auctions1.testnet --gas 300000000000000 --deposit 0.000000000000000000000001
@@ -57,6 +50,10 @@ Finalizar subasta:
 
     near call $ID finish_auction  --accountId $ID --gas 300000000000000
 
+Consultar lista de ganadores:
+
+    near view $ID get_winners
+
 Registrar cuenta en contrato
 
 1.001
@@ -68,7 +65,7 @@ Verificar cuenta registrada
     
     near view lion.tokens.testnet storage_balance_of '{"account_id":"syi216.testnet"}'
 
-    near view lion.tokens.testnet ft_balance_of '{"account_id":"erictest2.testnet"}'
+    near view lion.tokens.testnet ft_balance_of '{"account_id":"auctionshat2.testnet"}'
 
 
 ## Construido con 🛠️

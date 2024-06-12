@@ -1,5 +1,5 @@
-const auctionsContract = "auctionshat.testnet";
-const ftContract = "lion.tokens.testnet";
+const auctionsContract = "auctionshat1.testnet";
+const ftContract = "lion.dev-1634069815926-48042760709553";
 const [date, setDate] = useState(null);
 const [startTime, setStartTime] = useState(0);
 const [endTime, setEndTime] = useState(0);
@@ -39,13 +39,15 @@ const auction = Near.view(
   true
 );
 
-const winnerHasStorageBalance = Near.view(
-  ftContract,
-  "storage_balance_of",
-  { account_id: auction.highest_bidder },
-  null,
-  true
-);
+const winnerHasStorageBalance = auction.highest_bidder
+  ? Near.view(
+      ftContract,
+      "storage_balance_of",
+      { account_id: auction.highest_bidder },
+      null,
+      true
+    )
+  : null;
 
 if (tokensPerAuction && currentSupply && auction) {
   setMinBit(auction.highest_bid / 1e24 + 0.5);
@@ -129,7 +131,7 @@ const addBid = () => {
     setValidBit(true);
     setValidBitAmount(0);
     Near.call(
-      "auctionshat.testnet",
+      auctionsContract,
       "start_or_place_bid",
       {},
       "300000000000000",
@@ -143,7 +145,26 @@ const addBid = () => {
 
 const claimTokens = () => {
   console.log("claimTokens");
-  Near.call(auctionsContract, "claim_tokens", {}, "300000000000000", 1);
+  if (winnerHasStorageBalance) {
+    Near.call(auctionsContract, "claim_tokens", {}, "300000000000000", 1);
+  } else {
+    Near.call([
+      {
+        contractName: ftContract,
+        methodName: "storage_deposit",
+        args: { account_id: auction.highest_bidder },
+        gas: 300000000000000,
+        deposit: 1 * 1e22,
+      },
+      {
+        contractName: auctionsContract,
+        methodName: "claim_tokens",
+        args: {},
+        gas: 300000000000000,
+        deposit: 1,
+      },
+    ]);
+  }
 };
 
 const sendTokensAndAddBid = () => {
@@ -431,7 +452,7 @@ return (
               style={{ alignContent: "center", marginTop: "10px" }}
             >
               <div class="row">
-                {auctionStatus != "" && (
+                {auctionStatus != "" && auction.highest_bidder && (
                   <div class="col-12">
                     {context.accountId == currentBidder ? (
                       <div style={{ textAlign: "center", fontSize: "20px" }}>
@@ -465,17 +486,19 @@ return (
             >
               <div class="row">
                 <div class="col-12">
-                  <div style={{ textAlign: "center", fontSize: "20px" }}>
-                    <label style={{ fontWeight: "bold" }}>
-                      {auctionStatus == "finish"
-                        ? "Winning bid"
-                        : "Current bid"}
-                    </label>
-                    <br />
-                    <label style={{ marginTop: "10px" }}>
-                      {currentBid.toFixed(2)} NEAR
-                    </label>
-                  </div>
+                  {auction.highest_bidder && (
+                    <div style={{ textAlign: "center", fontSize: "20px" }}>
+                      <label style={{ fontWeight: "bold" }}>
+                        {auctionStatus == "finish"
+                          ? "Winning bid"
+                          : "Current bid"}
+                      </label>
+                      <br />
+                      <label style={{ marginTop: "10px" }}>
+                        {currentBid.toFixed(2)} NEAR
+                      </label>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -528,9 +551,22 @@ return (
                           <Button onClick={addBid}>Place bid</Button>
                         </>
                       ) : context.accountId == currentBidder ? (
-                        <>
-                          <Button onClick={claimTokens}>Claim HAT's</Button>
-                        </>
+                        auction.claimed ? (
+                          <>
+                            <Input
+                              type="number"
+                              min="2"
+                              step="0.5"
+                              placeholder="2 ⋈ or more"
+                              onChange={(e) => setNewBit(e.target.value)}
+                            />
+                            <Button onClick={addBid}>Place bid</Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button onClick={claimTokens}>Claim HAT's </Button>
+                          </>
+                        )
                       ) : (
                         <>
                           <Input
@@ -543,9 +579,13 @@ return (
                               setValidBit(true);
                             }}
                           />
-                          <Button onClick={sendTokensAndAddBid}>
-                            Place bid
-                          </Button>
+                          {auction.highest_bidder ? (
+                            <Button onClick={sendTokensAndAddBid}>
+                              Place bid
+                            </Button>
+                          ) : (
+                            <Button onClick={addBid}>Place bid</Button>
+                          )}
                         </>
                       )}
                     </InputGroup>

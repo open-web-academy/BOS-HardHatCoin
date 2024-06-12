@@ -59,7 +59,8 @@ impl Contract {
             current_supply: old_state.current_supply,
             tokens_per_auction: old_state.tokens_per_auction,
             auction_duration: old_state.auction_duration,
-            auction_info: old_state.auction_info
+            auction_info: old_state.auction_info,
+            winners: old_state.winners
         }
     }
 

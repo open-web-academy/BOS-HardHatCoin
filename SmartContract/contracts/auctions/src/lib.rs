@@ -24,6 +24,7 @@ pub struct OldContract {
     pub tokens_per_auction: Balance,
     pub auction_duration: EpochHeight,
     pub auction_info: AuctionInfo,
+    pub winners: Vec<Winner>,
 }
 
 #[near_bindgen]
@@ -36,6 +37,7 @@ pub struct Contract {
     pub tokens_per_auction: Balance,
     pub auction_duration: EpochHeight,
     pub auction_info: AuctionInfo,
+    pub winners: Vec<Winner>,
 }
 
 #[derive(Serialize, Deserialize, BorshDeserialize, BorshSerialize, Clone)]
@@ -49,7 +51,13 @@ pub struct AuctionInfo {
     highest_bid_temp: Balance,
 }
 
-// Crear estructura de ganadores [Account, Bid, HatAmount]
+#[derive(Serialize, Deserialize, BorshDeserialize, BorshSerialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
+pub struct Winner {
+    account: String,
+    bid: Balance,
+    hat_amount: Balance,
+}
 
 
 #[near_bindgen]
@@ -73,7 +81,7 @@ impl Contract {
             highest_bid: 0,
             highest_bidder: String::default(),
             claimed: false,
-            highest_bid_temp: 0
+            highest_bid_temp: 0,
         };
 
         let this = Self {
@@ -84,6 +92,7 @@ impl Contract {
             tokens_per_auction: tokens_per_auction,
             auction_duration,
             auction_info: auction_info,
+            winners: Vec::new(),
         };
 
         this
@@ -99,6 +108,10 @@ impl Contract {
 
     pub fn get_tokens_per_auction(&self) -> Balance {
         return self.tokens_per_auction;
+    }
+
+    pub fn get_winners(&self) -> Vec<Winner> {
+        self.winners.clone()
     }
 
     #[payable]
@@ -132,6 +145,13 @@ impl Contract {
         self.auction_info.claimed = true;
 
         self.current_supply -= self.tokens_per_auction;
+
+        self.winners.push(Winner {
+            account: self.auction_info.highest_bidder.clone(),
+            bid: self.auction_info.highest_bid.clone(),
+            hat_amount: self.tokens_per_auction,
+        });
+
 
         return "Tokens successfully claimed".to_string();
 
