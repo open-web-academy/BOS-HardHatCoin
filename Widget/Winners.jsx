@@ -1,10 +1,77 @@
+const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 5;
+
 const auctionsContract = "auctionshat1.testnet";
-const winners = Near.view(auctionsContract, "get_winners", null, null, true);
+
+let winners = Near.view(
+  auctionsContract,
+  "get_winners",
+  null,
+  null,
+  true
+).reverse();
+
+const totalPages = Math.ceil(winners.length / itemsPerPage);
+
+if (winners % itemsPerPage != 0) {
+  const fillTable = itemsPerPage * totalPages;
+  const difference = fillTable - winners.length;
+
+  for (let i = 0; i < difference; i++) {
+    winners.push({
+      account: "",
+      bid: 0,
+      hat_amount: 0,
+    });
+  }
+}
+
+const indexOfLastItem = currentPage * itemsPerPage;
+const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+const currentItems = winners.slice(indexOfFirstItem, indexOfLastItem);
+
+const handleNextPage = () => {
+  if (currentPage < totalPages) {
+    setCurrentPage(currentPage + 1);
+  }
+};
+
+const handlePreviousPage = () => {
+  if (currentPage > 1) {
+    setCurrentPage(currentPage - 1);
+  }
+};
 
 const Wrapper = styled.div`
 * {
   font-family: 'system-ui','Inter', 'Space Grotesk' !important;
 }
+`;
+
+const CircleButton = styled.button`
+    display: inline-flex;
+    -webkit-box-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #F5AD00;
+    padding: 10px;
+    font-weight: 500;
+    border: 0px;
+    color: black;
+    width: 50px;
+    height: 50px;
+    margin-left: 5px;
+    margin-top: 10px;
+    
+    &:hover{
+      background: rgb(45, 50, 97);
+      color: white;
+      border-color: #F5AD00;
+      border-width: 1.5px;
+      border-style: solid;
+    }
 `;
 
 const ItemBackground = styled.div`
@@ -169,39 +236,92 @@ const Theme = state.theme;
 
 return (
   <Theme>
-    <ItemBackground>
-      <ItemContainer>
-        <ItemHeader>
-          <ItemTitle>
-            <label>List Of Winners</label>
-          </ItemTitle>
-        </ItemHeader>
-        <ItemBody>
-          <table className="table table-hover table-sm">
-            <thead>
-              <tr>
-                <th>Account</th>
-                <th>Winner Bid</th>
-                <th>Hats Obtained</th>
-              </tr>
-            </thead>
-            <tbody>
-              {winners.map((data, key) => {
-                return (
-                  <>
-                    <tr>
-                      <td>{data.account}</td>
-                      <td>{data.bid / 1e24}⋈</td>
-                      <td>{data.hat_amount}</td>
-                    </tr>
-                  </>
-                );
-              })}
-            </tbody>
-          </table>
-        </ItemBody>
-      </ItemContainer>
-    </ItemBackground>
+    {winners.length > 0 && (
+      <ItemBackground>
+        <ItemContainer>
+          <ItemHeader>
+            <ItemTitle>
+              <label>List Of Winners</label>
+            </ItemTitle>
+          </ItemHeader>
+          <ItemBody>
+            <table className="table table-sm">
+              <thead>
+                <tr>
+                  <th style={{ width: "40%" }}>Account</th>
+                  <th style={{ width: "30%" }}>Winner Bid</th>
+                  <th style={{ width: "30%" }}>Hats Obtained</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentItems.map((data, key) => {
+                  return (
+                    <>
+                      <tr style={{ height: "40px" }}>
+                        <td>{data.account ? data.account : ""}</td>
+                        <td>
+                          {data.bid ? (data.bid / 1e24).toFixed(1) + "⋈" : ""}
+                        </td>
+                        <td>{data.hat_amount ? data.hat_amount : " "}</td>
+                      </tr>
+                    </>
+                  );
+                })}
+              </tbody>
+            </table>
+            <div className="row">
+              <div
+                className="col-5"
+                style={{ display: "flex", "justify-content": "start" }}
+              >
+                <CircleButton
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M16.67 0l2.83 2.829-9.339 9.175 9.339 9.167-2.83 2.829-12.17-11.996z" />
+                  </svg>
+                </CircleButton>
+              </div>
+              <div
+                className="col-2"
+                style={{
+                  display: "flex",
+                  "justify-content": "center",
+                  "align-items": "center",
+                  color: "white",
+                  "font-size": "19px",
+                }}
+              >
+                {currentPage}/{totalPages}
+              </div>
+              <div
+                className="col-5"
+                style={{ display: "flex", "justify-content": "end" }}
+              >
+                <CircleButton
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7.33 24l-2.83-2.829 9.339-9.175-9.339-9.167 2.83-2.829 12.17 11.996z" />
+                  </svg>
+                </CircleButton>
+              </div>
+            </div>
+          </ItemBody>
+        </ItemContainer>
+      </ItemBackground>
+    )}
   </Theme>
 );
-

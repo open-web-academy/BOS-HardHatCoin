@@ -190,7 +190,7 @@ impl Contract {
         }
     
         if current_timestamp >= self.auction_info.start_time && current_timestamp <= self.auction_info.end_time {
-            require!(amount <  self.auction_info.highest_bid+490000000000000000000000, "The bid must be higher than the current one by at least 0.5 NEAR");
+            require!(amount >=  self.auction_info.highest_bid+490000000000000000000000, "The bid must be higher than the current one by at least 0.5 NEAR");
 
             if amount > self.auction_info.highest_bid {
 

@@ -127,19 +127,36 @@ const TimerContent = () => {
 
 const addBid = () => {
   console.log("addBid");
-  if (newBid >= currentBid + 0.5 && newBid % 0.5 == 0) {
-    setValidBit(true);
-    setValidBitAmount(0);
-    Near.call(
-      auctionsContract,
-      "start_or_place_bid",
-      {},
-      "300000000000000",
-      newBid * 1e24
-    );
+  if (auction.claimed && auctionStatus == "finish") {
+    if (newBid >= 2 && newBid % 0.5 == 0) {
+      setValidBit(true);
+      setValidBitAmount(0);
+      Near.call(
+        auctionsContract,
+        "start_or_place_bid",
+        {},
+        "300000000000000",
+        newBid * 1e24
+      );
+    } else {
+      setValidBit(false);
+      setValidBitAmount(currentBid + 0.5);
+    }
   } else {
-    setValidBit(false);
-    setValidBitAmount(currentBid + 0.5);
+    if (newBid >= currentBid + 0.5 && newBid % 0.5 == 0) {
+      setValidBit(true);
+      setValidBitAmount(0);
+      Near.call(
+        auctionsContract,
+        "start_or_place_bid",
+        {},
+        "300000000000000",
+        newBid * 1e24
+      );
+    } else {
+      setValidBit(false);
+      setValidBitAmount(currentBid + 0.5);
+    }
   }
 };
 
@@ -466,7 +483,7 @@ return (
                       <div style={{ textAlign: "center", fontSize: "20px" }}>
                         <label style={{ fontWeight: "bold" }}>
                           {auctionStatus == "finish"
-                            ? "Winner"
+                            ? "Last Winner"
                             : "Current bidder"}
                         </label>
                         <br />
@@ -495,7 +512,7 @@ return (
                       </label>
                       <br />
                       <label style={{ marginTop: "10px" }}>
-                        {currentBid.toFixed(2)} NEAR
+                        {currentBid.toFixed(1)} ⋈
                       </label>
                     </div>
                   )}
@@ -560,7 +577,7 @@ return (
                               placeholder="2 ⋈ or more"
                               onChange={(e) => setNewBit(e.target.value)}
                             />
-                            <Button onClick={addBid}>Place bid</Button>
+                            <Button onClick={addBid}>Start new auction</Button>
                           </>
                         ) : (
                           <>
@@ -579,12 +596,12 @@ return (
                               setValidBit(true);
                             }}
                           />
-                          {auction.highest_bidder ? (
+                          {auction.highest_bidder && !auction.claimed ? (
                             <Button onClick={sendTokensAndAddBid}>
-                              Place bid
+                              Start new auction
                             </Button>
                           ) : (
-                            <Button onClick={addBid}>Place bid</Button>
+                            <Button onClick={addBid}>Start new auction</Button>
                           )}
                         </>
                       )}
