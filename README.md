@@ -21,3 +21,5 @@ All NEAR tokens collected will go to the treasury of Open Web Academy.
 ### Place a Bid
 
 ### Claim Rewards
+
+### Winners List
