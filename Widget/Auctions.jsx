@@ -1,5 +1,10 @@
+// Address of the auction contract on the NEAR blockchain
 const auctionsContract = "auctionshat1.testnet";
+
+// Address of the fungible token contract on the NEAR blockchain
 const ftContract = "lion.dev-1634069815926-48042760709553";
+
+// State variables to manage the date and time of the auction, the current bid, the current bidder, the auction status, the new bid, and the validity of the bid
 const [date, setDate] = useState(null);
 const [startTime, setStartTime] = useState(0);
 const [endTime, setEndTime] = useState(0);
@@ -15,6 +20,7 @@ const [minBid, setMinBit] = useState(0);
 const [validBit, setValidBit] = useState(true);
 const [validBitAmount, setValidBitAmount] = useState(true);
 
+// Calling contract methods on NEAR to get auction information and winner's storage balance
 const tokensPerAuction = Near.view(
   auctionsContract,
   "get_tokens_per_auction",
@@ -49,6 +55,7 @@ const winnerHasStorageBalance = auction.highest_bidder
     )
   : null;
 
+// Update auction state based on data obtained from contract methods
 if (tokensPerAuction && currentSupply && auction) {
   setMinBit(auction.highest_bid / 1e24 + 0.5);
   setStartTime(auction.start_time.toString().substring(0, 13));
@@ -57,8 +64,10 @@ if (tokensPerAuction && currentSupply && auction) {
   setCurrentBidder(auction.highest_bidder);
 }
 
+// Function to format the time, adding a leading zero if necessary
 const formatTime = (time) => (time < 10 ? `0${time}` : time);
 
+// Timer that updates the countdown every second
 const timer = setInterval(() => {
   const options = { year: "numeric", month: "long", day: "numeric" };
   const date = new Date();
@@ -92,6 +101,7 @@ const timer = setInterval(() => {
   clearInterval(timer);
 }, 1000);
 
+// Definition of styled components using styled-components
 const Timer = styled.div`
   .time {
     font-size: 48px;
@@ -106,6 +116,7 @@ const Timer = styled.div`
   }
 `;
 
+// TimerContent component that displays the countdown
 const TimerContent = () => {
   const TimeSlot = ({ time, title }) => (
     <div className={"text-center"}>
@@ -125,6 +136,7 @@ const TimerContent = () => {
   );
 };
 
+// Function to place a bid in the auction, checking the validity of the bid
 const addBid = () => {
   console.log("addBid");
   if (auction.claimed && auctionStatus == "finish") {
@@ -160,6 +172,7 @@ const addBid = () => {
   }
 };
 
+// Function to claim the tokens won in the auction
 const claimTokens = () => {
   console.log("claimTokens");
   if (winnerHasStorageBalance) {
@@ -184,6 +197,7 @@ const claimTokens = () => {
   }
 };
 
+// Function to send tokens and place a new bid if certain conditions are met
 const sendTokensAndAddBid = () => {
   console.log("sendTokensAndAddBid");
   if (winnerHasStorageBalance) {
@@ -244,6 +258,7 @@ const sendTokensAndAddBid = () => {
   }
 };
 
+// Definition of various styled components to structure and style the auction user interface
 const Wrapper = styled.div`
 * {
   font-family: 'system-ui','Inter', 'Space Grotesk' !important;
@@ -410,7 +425,7 @@ if (!state.theme) {
 }
 const Theme = state.theme;
 
-// Finally we render the component where we call the necessary methods to interact with the smart contract.
+// Rendering the main component where necessary methods are called to interact with the smart contract
 return (
   <Theme>
     <ItemBackground>
