@@ -14,6 +14,7 @@ const YOCTO_FT: u128 = 1_000_000_000_000_000_000;
 
 pub type EpochHeight = u64;
 
+// Definition of structures
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct OldContract {
@@ -62,6 +63,7 @@ pub struct Winner {
 
 #[near_bindgen]
 impl Contract {
+    /// Initializes the contract with owner, fungible token address, total supply, tokens per auction, and auction duration.
     #[init]
     pub fn init_contract(owner_id: AccountId, ft_address: AccountId, total_supply: Balance, tokens_per_auction: Balance, auction_duration: EpochHeight) -> Self {
         Self::new(
@@ -73,6 +75,7 @@ impl Contract {
         )
     }
 
+    /// Constructor for the contract. Creates a new instance of the contract with initial information.
     #[init]
     pub fn new(owner_id: AccountId, ft_address: AccountId, total_supply: Balance, tokens_per_auction: Balance, auction_duration: EpochHeight) -> Self {
         let auction_info = AuctionInfo {
@@ -98,22 +101,27 @@ impl Contract {
         this
     }
 
+    /// Retrieves the current supply of tokens.
     pub fn get_current_supply(&self) -> Balance {
         return self.current_supply;
     }
 
+    /// Retrieves the current auction information.
     pub fn get_auction_info(&self) -> AuctionInfo {
         return self.auction_info.clone();
     }
 
+    /// Retrieves the number of tokens per auction.
     pub fn get_tokens_per_auction(&self) -> Balance {
         return self.tokens_per_auction;
     }
 
+    /// Retrieves the list of auction winners.
     pub fn get_winners(&self) -> Vec<Winner> {
         self.winners.clone()
     }
 
+    /// Function to claim tokens after an auction has ended.
     #[payable]
     pub fn claim_tokens(&mut self) -> String {
         let deposit = env::attached_deposit();
@@ -152,11 +160,10 @@ impl Contract {
             hat_amount: self.tokens_per_auction,
         });
 
-
         return "Tokens successfully claimed".to_string();
-
     }
 
+    /// Function to start a new auction or place a bid in an ongoing auction.
     #[payable]
     pub fn start_or_place_bid(&mut self) -> String {
         let bidder = env::predecessor_account_id();
@@ -212,7 +219,7 @@ impl Contract {
 
             return "The bid is less than or equal to the current one".to_string();
         } else {
-
+            
             require!( amount >= 2000000000000000000000000, "The bid must be higher than or equal to 2 NEAR");
             
             let new_start_time = current_timestamp;
@@ -230,44 +237,53 @@ impl Contract {
         }
     }
     
+    /// Function to change the token supply.
     pub fn change_tokens_supply(&mut self, amount: Balance) {
         self.assert_owner();
         self.total_supply = amount;
         self.current_supply= amount;
     }
 
+    /// Function to change the tokens per auction.
     pub fn change_tokens_per_auction(&mut self, amount: Balance) {
         self.assert_owner();
         self.tokens_per_auction = amount;
     }
     
+    /// Function to change the auction duration.
     pub fn change_auction_duration(&mut self, new_duration: EpochHeight) {
         self.assert_owner();
         self.auction_duration = new_duration;
     }
 
+    /// Function to change the fungible token address.
     pub fn change_ft_address(&mut self, ft_address: AccountId) {
         self.assert_owner();
         self.ft_address = ft_address;
     }
 
+    /// Function to change the owner of the contract.
     pub fn change_owner(&mut self, owner_id: AccountId) {
         self.assert_owner();
         self.owner_id = owner_id;
     }
 
+    /// Verifies if the signer is the owner of the contract.
     fn assert_owner(&self) {
         require!(self.signer_is_owner(), "Method is private to owner")
     }
 
+    /// Checks if the signer is the owner of the contract.
     fn signer_is_owner(&self) -> bool {
         self.is_owner(&env::predecessor_account_id())
     }
 
+    /// Checks if a given account ID is the owner of the contract.
     fn is_owner(&self, minter: &AccountId) -> bool {
         minter.as_str() == self.owner_id.as_str()
     }
 
+    /// Method to finish auction
     pub fn finish_auction(&mut self) {
         self.assert_owner();
         self.auction_info.end_time = 0;
