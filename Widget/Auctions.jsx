@@ -456,7 +456,7 @@ return (
                 }}
               >
                 <img
-                  src="https://raw.githubusercontent.com/open-web-academy/BOS-HardHatCoin/main/assets/icon.png"
+                  src="https://raw.githubusercontent.com/open-web-academy/BOS-HardHatCoin/main/assets/image.png"
                   style={{
                     height: "150px",
                   }}
