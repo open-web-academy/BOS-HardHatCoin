@@ -69,7 +69,7 @@ Verify registered account:
 
 Get token balance:
 
-    near view $FT_CONTRACT ft_balance_of '{"account_id":"irvingnh.testnet"}'
+    near view $FT_CONTRACT ft_balance_of '{"account_id":"yairnava.testnet"}'
 
 Display tokens in wallet:
 

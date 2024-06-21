@@ -3,7 +3,7 @@ use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{
     env, near_bindgen, AccountId, Balance, PanicOnDefault, Promise, Gas, require, log, assert_one_yocto
 };
-
+use near_sdk::json_types::U128;
 pub use crate::xcc::*;
 pub use crate::migrate::*;
 
@@ -142,13 +142,16 @@ impl Contract {
 
         assert_one_yocto();
         
-        ext_c::ft_transfer(
-            (self.tokens_per_auction.clone()*YOCTO_FT).to_string(),
+        ft_contract::ft_transfer(
             highest_bidder.clone().to_string(),
+            U128::from(self.tokens_per_auction.clone()*YOCTO_FT),
+            None,
             self.ft_address.clone(),
             deposit,
             Gas(100_000_000_000_000)
         );
+
+        log!("Deposit to winner: {}",self.tokens_per_auction.clone()*YOCTO_FT); 
 
         self.auction_info.claimed = true;
 
