@@ -5,19 +5,19 @@ Auction contract for the HAT token.
 ## Contract Methods 🚀
 
 Assign the identifier of our deployed contract to a constant (Replace AUCTION_CONTRACT with the deployed contract's identifier):
-
+ 
     Auctions
-    AUCTION_CONTRACT=auctionshat1.testnet
+    AUCTION_CONTRACT=hat-auctions.near
     echo $AUCTION_CONTRACT
 
     FT
-    FT_CONTRACT=lion.dev-1634069815926-48042760709553
+    FT_CONTRACT=hat.tkn.near
     echo $FT_CONTRACT
 
 Contract initialization:
 
     Auctions
-    near call $AUCTION_CONTRACT init_contract '{"owner_id":"'$AUCTION_CONTRACT'","ft_address":"'$FT_CONTRACT'","total_supply":19266000000, "tokens_per_auction": 19266000,  "auction_duration":86400000000000}' --accountId $AUCTION_CONTRACT
+    NEAR_ENV=mainnet near call $AUCTION_CONTRACT init_contract '{"owner_id":"'$AUCTION_CONTRACT'","ft_address":"'$FT_CONTRACT'","total_supply":19266000000, "tokens_per_auction": 19266000,  "auction_duration":86400000000000}' --accountId $AUCTION_CONTRACT
 
 ### Auctions
 
@@ -47,7 +47,7 @@ Claim tokens:
 
 Change auction duration:
 
-    near call $AUCTION_CONTRACT change_auction_duration '{"new_duration":900000000000}' --accountId $AUCTION_CONTRACT --gas 300000000000000
+    near call $AUCTION_CONTRACT change_auction_duration '{"new_duration":86400000000000}' --accountId $AUCTION_CONTRACT --gas 300000000000000
 
 Finish auction:
 
@@ -61,11 +61,11 @@ Get winners list:
 
 Register account in contract:
 
-    near call $FT_CONTRACT storage_deposit '{"account_id":"yairtest1.testnet"}' --accountId yairnava.testnet --deposit 0.01
+    near call $FT_CONTRACT storage_deposit '{"account_id":"hat-auctions.testnet"}' --accountId yairnava.testnet --deposit 0.01
 
 Verify registered account:
     
-    near view $FT_CONTRACT storage_balance_of '{"account_id":"syi216.testnet"}'
+    near view $FT_CONTRACT storage_balance_of '{"account_id":"hat-auctions.testnet"}'
 
 Get token balance:
 

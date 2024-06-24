@@ -1,8 +1,7 @@
 // Address of the auction contract on the NEAR blockchain
-const auctionsContract = "auctionshat1.testnet";
-
+const auctionsContract = "hat-auctions.near";
 // Address of the fungible token contract on the NEAR blockchain
-const ftContract = "lion.dev-1634069815926-48042760709553";
+const ftContract = "hat.tkn.near";
 
 // State variables to manage the date and time of the auction, the current bid, the current bidder, the auction status, the new bid, and the validity of the bid
 const [date, setDate] = useState(null);
@@ -60,7 +59,7 @@ if (tokensPerAuction && currentSupply && auction) {
   setMinBit(auction.highest_bid / 1e24 + 0.5);
   setStartTime(auction.start_time.toString().substring(0, 13));
   setEndTime(auction.end_time.toString().substring(0, 13));
-  setCurrentBid(auction.highest_bid / 1e24);
+  setCurrentBid(auction.highest_bid == 0 ? 1.5 : auction.highest_bid / 1e24);
   setCurrentBidder(auction.highest_bidder);
 }
 
@@ -152,7 +151,7 @@ const addBid = () => {
       );
     } else {
       setValidBit(false);
-      setValidBitAmount(currentBid + 0.5);
+      setValidBitAmount(2);
     }
   } else {
     if (newBid >= currentBid + 0.5 && newBid % 0.5 == 0) {
@@ -536,13 +535,14 @@ return (
             </div>
 
             {auctionStatus == "active" && (
-              <div class="col-12">
+              <div
+                class="col-12"
+                style={{ display: "flex", justifyContent: "center" }}
+              >
                 <div
                   style={{
                     height: "100%",
-                    display: "flex",
-                    "justify-content": "center",
-                    "align-items": "center",
+                    textAlign: "center",
                     marginTop: "30px",
                   }}
                 >

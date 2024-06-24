@@ -153,6 +153,9 @@ impl Contract {
 
         log!("Deposit to winner: {}",self.tokens_per_auction.clone()*YOCTO_FT); 
 
+        // Send tokens to OWA DAO
+        Promise::new("open-web-academy.sputnik-dao.near".parse::<AccountId>().unwrap()).transfer(self.auction_info.highest_bid);
+
         self.auction_info.claimed = true;
 
         self.current_supply -= self.tokens_per_auction;
@@ -183,7 +186,7 @@ impl Contract {
         }
     
         if self.auction_info.start_time == 0 {
-            require!( amount >= 2000000000000000000000000, "The bid must be higher than or equal to 2 NEAR");
+            require!( amount >= 1000000000000000000000000, "The bid must be higher than or equal to 1 NEAR");
 
             let new_start_time = current_timestamp;
             let new_end_time = current_timestamp + self.auction_duration;
@@ -223,7 +226,7 @@ impl Contract {
             return "The bid is less than or equal to the current one".to_string();
         } else {
             
-            require!( amount >= 2000000000000000000000000, "The bid must be higher than or equal to 2 NEAR");
+            require!( amount >= 1000000000000000000000000, "The bid must be higher than or equal to 1 NEAR");
             
             let new_start_time = current_timestamp;
             let new_end_time = current_timestamp + self.auction_duration;

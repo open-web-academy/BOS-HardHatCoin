@@ -1,65 +1,65 @@
- // State for current page of pagination
- const [currentPage, setCurrentPage] = useState(1);
- 
- // Number of items per page
- const itemsPerPage = 5;
+// State for current page of pagination
+const [currentPage, setCurrentPage] = useState(1);
 
- // Contract address for auctions
- const auctionsContract = "auctionshat1.testnet";
+// Number of items per page
+const itemsPerPage = 5;
 
- // Fetch winners from the contract
- let winners = Near.view(
-   auctionsContract,
-   "get_winners",
-   null,
-   null,
-   true
- ).reverse();
+// Contract address for auctions
+const auctionsContract = "hat-auctions.near";
 
- // Calculate total pages based on winners array length and items per page
- const totalPages = Math.ceil(winners.length / itemsPerPage);
+// Fetch winners from the contract
+let winners = Near.view(
+  auctionsContract,
+  "get_winners",
+  null,
+  null,
+  true
+).reverse();
 
- // If winners array length is not divisible evenly by itemsPerPage, fill with empty objects
- if (winners % itemsPerPage != 0) {
-   const fillTable = itemsPerPage * totalPages;
-   const difference = fillTable - winners.length;
+// Calculate total pages based on winners array length and items per page
+const totalPages = Math.ceil(winners.length / itemsPerPage);
 
-   for (let i = 0; i < difference; i++) {
-     winners.push({
-       account: "",
-       bid: 0,
-       hat_amount: 0,
-     });
-   }
- }
+// If winners array length is not divisible evenly by itemsPerPage, fill with empty objects
+if (winners % itemsPerPage != 0) {
+  const fillTable = itemsPerPage * totalPages;
+  const difference = fillTable - winners.length;
 
- // Calculate indexes of items to display on current page
- const indexOfLastItem = currentPage * itemsPerPage;
- const indexOfFirstItem = indexOfLastItem - itemsPerPage;
- const currentItems = winners.slice(indexOfFirstItem, indexOfLastItem);
+  for (let i = 0; i < difference; i++) {
+    winners.push({
+      account: "",
+      bid: 0,
+      hat_amount: 0,
+    });
+  }
+}
 
- // Handler for next page button
- const handleNextPage = () => {
-   if (currentPage < totalPages) {
-     setCurrentPage(currentPage + 1);
-   }
- };
+// Calculate indexes of items to display on current page
+const indexOfLastItem = currentPage * itemsPerPage;
+const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+const currentItems = winners.slice(indexOfFirstItem, indexOfLastItem);
 
- // Handler for previous page button
- const handlePreviousPage = () => {
-   if (currentPage > 1) {
-     setCurrentPage(currentPage - 1);
-   }
- };
+// Handler for next page button
+const handleNextPage = () => {
+  if (currentPage < totalPages) {
+    setCurrentPage(currentPage + 1);
+  }
+};
 
- // Styled components for UI elements
- const Wrapper = styled.div`
+// Handler for previous page button
+const handlePreviousPage = () => {
+  if (currentPage > 1) {
+    setCurrentPage(currentPage - 1);
+  }
+};
+
+// Styled components for UI elements
+const Wrapper = styled.div`
  * {
    font-family: 'system-ui','Inter', 'Space Grotesk' !important;
  }
  `;
- 
- const CircleButton = styled.button`
+
+const CircleButton = styled.button`
      display: inline-flex;
      -webkit-box-align: center;
      align-items: center;
@@ -84,8 +84,8 @@
        border-style: solid;
      }
  `;
- 
- const ItemBackground = styled.div`
+
+const ItemBackground = styled.div`
          width: 100%;
          display: flex;
          justify-content: center;
@@ -93,8 +93,8 @@
          background-size: cover;
          margin-bottom: -50px;
          `;
- 
- const ItemContainer = styled.div`
+
+const ItemContainer = styled.div`
          margin-top: 30px;
          box-sizing: border-box;
          min-width: 375px;
@@ -102,8 +102,8 @@
          padding: 0px 32px;
          position: relative;
          `;
- 
- const ItemTitle = styled.h3`
+
+const ItemTitle = styled.h3`
          text-align: center;
          color: black;
          display: flex;
@@ -111,19 +111,19 @@
          align-items: center;
          margin-bottom: 1rem;
          `;
- 
- const ItemImage = styled.img`
+
+const ItemImage = styled.img`
              width: 40px;
              margin-right: 15px;
          `;
- 
- const ItemSubTitle = styled.div`
+
+const ItemSubTitle = styled.div`
          text-align: center;
          color: yellow;
          margin-bottom: 5px;
          `;
- 
- const ItemHeader = styled.div`
+
+const ItemHeader = styled.div`
          background: #F5AD00;
          color: #1E1E1E;
          font-weight: 400;
@@ -135,8 +135,8 @@
          box-shadow: none;
          color: rgb(255, 255, 255);
          `;
- 
- const ItemBody = styled.div`
+
+const ItemBody = styled.div`
          font-weight: 400;
          font-size: 1em;
          line-height: 1.6em;
@@ -147,8 +147,8 @@
          color: black;
          background: rgb(45, 50, 97);
          `;
- 
- const InputGroup = styled.div`
+
+const InputGroup = styled.div`
      position: relative;
      display: flex;
      flex-wrap: wrap;
@@ -157,8 +157,8 @@
      width: 100%;
      justify-content: center;
  `;
- 
- const Button = styled.button`
+
+const Button = styled.button`
      display: inline-flex;
      -webkit-box-align: center;
      align-items: center;
@@ -184,8 +184,8 @@
        border-style: solid;
      }
  `;
- 
- const ButtonDisabled = styled.button`
+
+const ButtonDisabled = styled.button`
      display: inline-flex;
      -webkit-box-align: center;
      align-items: center;
@@ -204,8 +204,8 @@
      color: white;
      cursor: default !important;
  `;
- 
- const Input = styled.input`
+
+const Input = styled.input`
      -webkit-box-sizing: border-box;
      height: 54px;
      color: #000;
@@ -222,7 +222,7 @@
      margin-right: 5px;
      text-align: center;
      margin-top: 10px;
- `; 
+ `;
 
 // FETCH CSS
 const cssFont = fetch(
@@ -244,53 +244,53 @@ if (!state.theme) {
   });
 }
 
- // Access the current theme from state
- const Theme = state.theme;
+// Access the current theme from state
+const Theme = state.theme;
 
- // Rendering the main component
- return (
+// Rendering the main component
+return (
   <Theme>
-    {winners.length > 0 && (
-      <ItemBackground>
-        <ItemContainer>
-          <ItemHeader>
-            <ItemTitle>
-              <label>List Of Winners</label>
-            </ItemTitle>
-          </ItemHeader>
-          <ItemBody>
-            <div
-              style={{
-                width: "100%",
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
-              <table className="table table-sm">
-                <thead>
-                  <tr>
-                    <th style={{ width: "40%" }}>Account</th>
-                    <th style={{ width: "30%" }}>Winner Bid</th>
-                    <th style={{ width: "30%" }}>Hats Obtained</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentItems.map((data, key) => {
-                    return (
-                      <>
-                        <tr style={{ height: "40px" }}>
-                          <td>{data.account ? data.account : ""}</td>
-                          <td>
-                            {data.bid ? (data.bid / 1e24).toFixed(1) + "⋈" : ""}
-                          </td>
-                          <td>{data.hat_amount ? data.hat_amount : " "}</td>
-                        </tr>
-                      </>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+    <ItemBackground>
+      <ItemContainer>
+        <ItemHeader>
+          <ItemTitle>
+            <label>List Of Winners</label>
+          </ItemTitle>
+        </ItemHeader>
+        <ItemBody>
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <table className="table table-sm">
+              <thead>
+                <tr>
+                  <th style={{ width: "40%" }}>Account</th>
+                  <th style={{ width: "30%" }}>Winner Bid</th>
+                  <th style={{ width: "30%" }}>Hats Obtained</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentItems.map((data, key) => {
+                  return (
+                    <>
+                      <tr style={{ height: "40px" }}>
+                        <td>{data.account ? data.account : ""}</td>
+                        <td>
+                          {data.bid ? (data.bid / 1e24).toFixed(1) + "⋈" : ""}
+                        </td>
+                        <td>{data.hat_amount ? data.hat_amount : " "}</td>
+                      </tr>
+                    </>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {winners.length > 0 && (
             <div
               className="row"
               style={{
@@ -348,9 +348,9 @@ if (!state.theme) {
                 </CircleButton>
               </div>
             </div>
-          </ItemBody>
-        </ItemContainer>
-      </ItemBackground>
-    )}
+          )}
+        </ItemBody>
+      </ItemContainer>
+    </ItemBackground>
   </Theme>
 );
