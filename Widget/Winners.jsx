@@ -5,7 +5,7 @@ const [currentPage, setCurrentPage] = useState(1);
 const itemsPerPage = 5;
 
 // Contract address for auctions
-const auctionsContract = "hat-auctions.near";
+const auctionsContract = "auctions.hat-coin.near";
 
 // Fetch winners from the contract
 let winners = Near.view(

@@ -1,5 +1,5 @@
 // Address of the auction contract on the NEAR blockchain
-const auctionsContract = "hat-auctions.near";
+const auctionsContract = "auctions.hat-coin.near";
 // Address of the fungible token contract on the NEAR blockchain
 const ftContract = "hat.tkn.near";
 
@@ -59,7 +59,7 @@ if (tokensPerAuction && currentSupply && auction) {
   setMinBit(auction.highest_bid / 1e24 + 0.5);
   setStartTime(auction.start_time.toString().substring(0, 13));
   setEndTime(auction.end_time.toString().substring(0, 13));
-  setCurrentBid(auction.highest_bid == 0 ? 1.5 : auction.highest_bid / 1e24);
+  setCurrentBid(auction.highest_bid == 0 ? 0.5 : auction.highest_bid / 1e24);
   setCurrentBidder(auction.highest_bidder);
 }
 
@@ -139,7 +139,7 @@ const TimerContent = () => {
 const addBid = () => {
   console.log("addBid");
   if (auction.claimed && auctionStatus == "finish") {
-    if (newBid >= 2 && newBid % 0.5 == 0) {
+    if (newBid >= 1) {
       setValidBit(true);
       setValidBitAmount(0);
       Near.call(
@@ -151,10 +151,10 @@ const addBid = () => {
       );
     } else {
       setValidBit(false);
-      setValidBitAmount(2);
+      setValidBitAmount(1);
     }
   } else {
-    if (newBid >= currentBid + 0.5 && newBid % 0.5 == 0) {
+    if (newBid >= currentBid + 0.5) {
       setValidBit(true);
       setValidBitAmount(0);
       Near.call(
@@ -200,7 +200,7 @@ const claimTokens = () => {
 const sendTokensAndAddBid = () => {
   console.log("sendTokensAndAddBid");
   if (winnerHasStorageBalance) {
-    if (newBid >= 2 && newBid % 0.5 === 0) {
+    if (newBid >= 1) {
       setValidBit(true);
       setValidBitAmount(0);
       Near.call([
@@ -221,10 +221,10 @@ const sendTokensAndAddBid = () => {
       ]);
     } else {
       setValidBit(false);
-      setValidBitAmount(2);
+      setValidBitAmount(1);
     }
   } else {
-    if (newBid >= 2 && newBid % 0.5 === 0) {
+    if (newBid >= 1) {
       setValidBit(true);
       setValidBitAmount(0);
       Near.call([
@@ -252,7 +252,7 @@ const sendTokensAndAddBid = () => {
       ]);
     } else {
       setValidBit(false);
-      setValidBitAmount(2);
+      setValidBitAmount(1);
     }
   }
 };
@@ -587,9 +587,9 @@ return (
                           <>
                             <Input
                               type="number"
-                              min="2"
+                              min="1"
                               step="0.5"
-                              placeholder="2 ⋈ or more"
+                              placeholder="1 ⋈ or more"
                               onChange={(e) => setNewBit(e.target.value)}
                             />
                             <Button onClick={addBid}>Start new auction</Button>
@@ -603,9 +603,9 @@ return (
                         <>
                           <Input
                             type="number"
-                            min="2"
+                            min="1"
                             step="0.5"
-                            placeholder="2 ⋈ or more"
+                            placeholder="1 ⋈ or more"
                             onChange={(e) => {
                               setNewBit(e.target.value);
                               setValidBit(true);
