@@ -1,7 +1,7 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{
-    env, near_bindgen, AccountId, Balance, PanicOnDefault, Promise, Gas, require, log, assert_one_yocto
+    env, near_bindgen, AccountId, Balance, PanicOnDefault, Promise, Gas, require, log, PromiseResult
 };
 use near_sdk::json_types::U128;
 pub use crate::xcc::*;
@@ -121,52 +121,139 @@ impl Contract {
         self.winners.clone()
     }
 
+    pub fn get_winners_pagination(&self, page: u64, page_size: u64) -> Vec<Winner> {
+        // Invertir el vector de ganadores
+        let mut reversed_winners = self.winners.clone();
+        reversed_winners.reverse();
+    
+        // Calcular el índice inicial basado en la página actual y el tamaño de la página
+        let winners_len = reversed_winners.len() as u64;
+    
+        // Verificar si la lista de ganadores está vacía
+        if winners_len == 0 {
+            log!("La lista de ganadores está vacía.");
+            return vec![];
+        }
+    
+        // Calcular el índice inicial
+        let start = page * page_size;
+    
+        // Calcular el índice final y asegurarse de que no exceda el tamaño del vector
+        let end = if start + page_size > winners_len {
+            winners_len
+        } else {
+            start + page_size
+        };
+    
+        log!("Mostrando ganadores desde el índice {} hasta el índice {}", start, end);
+    
+        // Retornar la porción de la lista de ganadores correspondiente a la página solicitada
+        reversed_winners[start as usize..end as usize].to_vec()
+    }
+
+    /// Retrieves the number of auction winners.
+    pub fn get_winners_number(&self) -> u64 {
+        let winners_len = self.winners.len() as u64;
+        return winners_len; 
+    }
+
     /// Function to claim tokens after an auction has ended.
     #[payable]
-    pub fn claim_tokens(&mut self) -> String {
+    pub fn claim_tokens(&mut self) -> Promise {
         let deposit = env::attached_deposit();
 
+        log!("deposit: {}",deposit); 
+
         if self.auction_info.start_time == 0  {
-            return "No active auction".to_string();
+            env::panic_str("No active auction");
         }
 
         if self.auction_info.claimed {
-            return "Auction already claimed".to_string();
+            env::panic_str("Auction already claimed");
         }
 
         if env::block_timestamp() < self.auction_info.end_time {
-            return "Auction not finished".to_string();
+            env::panic_str("Auction not finished");
+        }
+
+        if deposit < 10000000000000000000000{
+            env::panic_str("Deposit must be 0.01 NEAR");
         }
 
         let highest_bidder = self.auction_info.highest_bidder.clone();
 
-        assert_one_yocto();
-        
-        ft_contract::ft_transfer(
+        let call = ft_contract::storage_balance_of(
             highest_bidder.clone().to_string(),
-            U128::from(self.tokens_per_auction.clone()*YOCTO_FT),
-            None,
             self.ft_address.clone(),
-            deposit,
-            Gas(100_000_000_000_000)
+            0,
+            Gas(50_000_000_000_000)
+                
         );
 
-        log!("Deposit to winner: {}",self.tokens_per_auction.clone()*YOCTO_FT); 
+        let callback = ext_self::send_rewards(
+            "auctions.hat-coin.near".parse::<AccountId>().unwrap(),
+            deposit,
+            Gas(150_000_000_000_000)
+        );
 
-        // Send tokens to OWA DAO
-        Promise::new("open-web-academy.sputnik-dao.near".parse::<AccountId>().unwrap()).transfer(self.auction_info.highest_bid);
+        call.then(callback)
 
-        self.auction_info.claimed = true;
 
-        self.current_supply -= self.tokens_per_auction;
+    }
 
-        self.winners.push(Winner {
-            account: self.auction_info.highest_bidder.clone(),
-            bid: self.auction_info.highest_bid.clone(),
-            hat_amount: self.tokens_per_auction,
-        });
+    #[payable]
+    pub fn send_rewards(&mut self) -> String{
+        assert_eq!(
+            env::promise_results_count(),
+            1,
+            "Éste es un método callback"
+        );
+        match env::promise_result(0) {
+            PromiseResult::NotReady => unreachable!(),
+            PromiseResult::Failed => {
+                "Error".to_string()
+            },
+            PromiseResult::Successful(_result) => {
+                let value = std::str::from_utf8(&_result).unwrap();
 
-        return "Tokens successfully claimed".to_string();
+                log!("value: {}",value); 
+
+                if value == "null".to_string() {
+                    env::panic_str("The account does not have a storage deposit in ft contract");
+                }
+
+                let highest_bidder = self.auction_info.highest_bidder.clone();
+                let deposit = env::attached_deposit();
+
+                log!("deposit: {}",deposit); 
+
+                ft_contract::ft_transfer(
+                    highest_bidder.clone().to_string(),
+                    U128::from(self.tokens_per_auction.clone()*YOCTO_FT),
+                    None,
+                    self.ft_address.clone(),
+                    1,
+                    Gas(100_000_000_000_000)
+                );
+            
+                log!("Deposit to winner: {}",self.tokens_per_auction.clone()*YOCTO_FT); 
+            
+                // Send tokens to OWA DAO
+                Promise::new("open-web-academy.sputnik-dao.near".parse::<AccountId>().unwrap()).transfer(self.auction_info.highest_bid);
+            
+                self.auction_info.claimed = true;
+            
+                self.current_supply -= self.tokens_per_auction;
+            
+                self.winners.push(Winner {
+                    account: self.auction_info.highest_bidder.clone(),
+                    bid: self.auction_info.highest_bid.clone(),
+                    hat_amount: self.tokens_per_auction,
+                });
+            
+                return "Tokens successfully claimed".to_string();
+            }
+        }
     }
 
     /// Function to start a new auction or place a bid in an ongoing auction.
@@ -177,13 +264,6 @@ impl Contract {
         let current_timestamp = env::block_timestamp();
 
         require!( self.current_supply >= self.tokens_per_auction, "Current supply is less than the number of tokens per auction");
-
-        if amount > self.auction_info.highest_bid_temp {
-            self.auction_info.highest_bid_temp = amount;
-        } else {
-            Promise::new(bidder.clone()).transfer(amount);
-            return "A bid of the same value has just been made".to_string();
-        }
     
         if self.auction_info.start_time == 0 {
             require!( amount >= 1000000000000000000000000, "The bid must be higher than or equal to 1 NEAR");
@@ -198,7 +278,7 @@ impl Contract {
                 claimed: false,
                 highest_bid_temp: 0
             };
-            self.auction_info.highest_bid_temp = 0;
+
             return format!("A new auction has started by {}", bidder);
         }
     
@@ -215,12 +295,10 @@ impl Contract {
 
                 self.auction_info.highest_bid = amount;
                 self.auction_info.highest_bidder = bidder.to_string();
-                self.auction_info.highest_bid_temp = 0;
 
                 return format!("Bid placed successfully by {}", bidder);
             }
             
-            self.auction_info.highest_bid_temp = 0;
             Promise::new(bidder.clone()).transfer(amount);
 
             return "The bid is less than or equal to the current one".to_string();
@@ -238,7 +316,6 @@ impl Contract {
                 claimed: false,
                 highest_bid_temp: 0
             };
-            self.auction_info.highest_bid_temp = 0;
             return "A new auction has started".to_string();
         }
     }

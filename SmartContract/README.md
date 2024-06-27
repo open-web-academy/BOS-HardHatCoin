@@ -43,7 +43,7 @@ Create bid:
 
 Claim tokens:
 
-    NEAR_ENV=mainnet near call $AUCTION_CONTRACT claim_tokens '{}' --accountId auctions1.testnet --gas 300000000000000 --depositYocto
+    NEAR_ENV=mainnet near call $AUCTION_CONTRACT claim_tokens '{}' --accountId yairnava.near --gas 300000000000000 --deposit 0.01
 
 Change auction duration:
 
@@ -57,20 +57,22 @@ Get winners list:
 
     NEAR_ENV=mainnet near view $AUCTION_CONTRACT get_winners
 
+    NEAR_ENV=mainnet near view $AUCTION_CONTRACT get_winners_pagination '{"page":0, "page_size":5}'
+
 ### FT
 
 Register account in contract:
 
-    NEAR_ENV=mainnet near call $FT_CONTRACT storage_deposit '{"account_id":"hat-auctions.testnet"}' --accountId yairnava.testnet --deposit 0.01
+    NEAR_ENV=mainnet near call $FT_CONTRACT storage_deposit '{"account_id":"yairnava.near"}' --accountId yairnava.testnet --deposit 0.01
 
 Verify registered account:
     
-    NEAR_ENV=mainnet near view $FT_CONTRACT storage_balance_of '{"account_id":"hat-auctions.testnet"}'
+    NEAR_ENV=mainnet near view $FT_CONTRACT storage_balance_of '{"account_id":"yairnava.near"}'
 
 Get token balance:
 
-    NEAR_ENV=mainnet near view $FT_CONTRACT ft_balance_of '{"account_id":"auctions.hat-coin.near"}'
+    NEAR_ENV=mainnet near view $FT_CONTRACT ft_balance_of '{"account_id":"yairnava.near"}'
 
 Display tokens in wallet:
 
-    NEAR_ENV=mainnet near call $FT_CONTRACT ft_transfer '{ "receiver_id": "---", "amount": 0}' --accountId irvingnh.testnet --depositYocto
+    NEAR_ENV=mainnet near call $FT_CONTRACT ft_transfer '{ "receiver_id": "---", "amount": 0}' --accountId yairnava.near --depositYocto

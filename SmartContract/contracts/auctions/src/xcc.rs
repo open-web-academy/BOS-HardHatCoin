@@ -11,9 +11,11 @@ pub trait ExternsContract {
         amount: U128, 
         memo: Option<String>
     );
+    
+    fn storage_balance_of(&self,account_id: String);
 }
 
 #[ext_contract(ext_self)]
 trait NonFungibleTokenResolver {
-    
+    fn send_rewards(&mut self) -> String;
 }
