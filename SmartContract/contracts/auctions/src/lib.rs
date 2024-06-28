@@ -303,6 +303,10 @@ impl Contract {
 
             return "The bid is less than or equal to the current one".to_string();
         } else {
+
+            if !self.auction_info.claimed {
+                env::panic_str("Tokens have not been claimed");
+            }
             
             require!( amount >= 1000000000000000000000000, "The bid must be higher than or equal to 1 NEAR");
             
