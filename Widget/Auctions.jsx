@@ -175,7 +175,13 @@ const addBid = () => {
 const claimTokens = () => {
   console.log("claimTokens");
   if (winnerHasStorageBalance) {
-    Near.call(auctionsContract, "claim_tokens", {}, "300000000000000", 1);
+    Near.call(
+      auctionsContract,
+      "claim_tokens",
+      {},
+      "300000000000000",
+      1 * 1e22
+    );
   } else {
     Near.call([
       {
@@ -190,7 +196,7 @@ const claimTokens = () => {
         methodName: "claim_tokens",
         args: {},
         gas: 300000000000000,
-        deposit: 1,
+        deposit: 1 * 1e22,
       },
     ]);
   }
@@ -209,7 +215,7 @@ const sendTokensAndAddBid = () => {
           methodName: "claim_tokens",
           args: {},
           gas: 300000000000000,
-          deposit: 1,
+          deposit: 1 * 1e22,
         },
         {
           contractName: auctionsContract,
@@ -240,7 +246,7 @@ const sendTokensAndAddBid = () => {
           methodName: "claim_tokens",
           args: {},
           gas: 300000000000000,
-          deposit: 1,
+          deposit: 1 * 1e22,
         },
         {
           contractName: auctionsContract,
@@ -502,7 +508,12 @@ return (
                         </label>
                         <br />
                         <label style={{ marginTop: "10px" }}>
-                          {currentBidder}
+                          {currentBidder.endsWith(".near") &&
+                          currentBidder.length < 17
+                            ? currentBidder
+                            : currentBidder.length > 17
+                            ? currentBidder.substring(0, 17) + "..."
+                            : currentBidder}
                         </label>
                       </div>
                     )}
@@ -526,7 +537,7 @@ return (
                       </label>
                       <br />
                       <label style={{ marginTop: "10px" }}>
-                        {currentBid.toFixed(1)} ⋈
+                        {currentBid.toFixed(2)} ⋈
                       </label>
                     </div>
                   )}
@@ -575,9 +586,9 @@ return (
                         <>
                           <Input
                             type="number"
-                            min={minBid.toFixed(1)}
+                            min={minBid.toFixed(2)}
                             step="0.5"
-                            placeholder={minBid.toFixed(1) + "⋈ or more"}
+                            placeholder={minBid.toFixed(2) + "⋈ or more"}
                             onChange={(e) => setNewBit(e.target.value)}
                           />
                           <Button onClick={addBid}>Place bid</Button>
