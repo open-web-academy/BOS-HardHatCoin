@@ -1,56 +1,83 @@
+// Contract address for auctions
+const auctionsContract = "auctions.hat-coin.near";
+
 // State for current page of pagination
-const [currentPage, setCurrentPage] = useState(1);
+State.init({
+  currentPage: 0,
+  winners: [],
+  loading: false,
+});
 
 // Number of items per page
 const itemsPerPage = 5;
 
-// Contract address for auctions
-const auctionsContract = "auctions.hat-coin.near";
-
-// Fetch winners from the contract
-let winners = Near.view(
+// Number of winners
+const number_winners = Near.view(
   auctionsContract,
-  "get_winners",
+  "get_winners_number",
   null,
   null,
   true
-).reverse();
+);
 
 // Calculate total pages based on winners array length and items per page
-const totalPages = Math.ceil(winners.length / itemsPerPage);
+const totalPages = Math.ceil(number_winners / itemsPerPage);
 
-// If winners array length is not divisible evenly by itemsPerPage, fill with empty objects
-if (winners % itemsPerPage != 0) {
-  const fillTable = itemsPerPage * totalPages;
-  const difference = fillTable - winners.length;
+const getWinnersPaginator = (page, size) => {
+  console.log("page: " + page);
+  console.log("size: " + size);
+  let w = Near.view(
+    auctionsContract,
+    "get_winners_pagination",
+    { page: page, page_size: size },
+    null,
+    true
+  );
 
-  for (let i = 0; i < difference; i++) {
-    winners.push({
-      account: "",
-      bid: 0,
-      hat_amount: 0,
-    });
+  if (!w) {
+    setTimeout(() => {
+      getWinnersPaginator(page, size);
+    }, 500);
   }
-}
-
-// Calculate indexes of items to display on current page
-const indexOfLastItem = currentPage * itemsPerPage;
-const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-const currentItems = winners.slice(indexOfFirstItem, indexOfLastItem);
+  State.update({ winners: w });
+  if (state.winners.length > 0) {
+    State.update({ loading: true });
+  }
+};
 
 // Handler for next page button
 const handleNextPage = () => {
-  if (currentPage < totalPages) {
-    setCurrentPage(currentPage + 1);
+  if (state.currentPage < totalPages - 1) {
+    State.update({ currentPage: state.currentPage + 1 });
+    getWinnersPaginator(state.currentPage, 5);
   }
 };
 
 // Handler for previous page button
 const handlePreviousPage = () => {
-  if (currentPage > 1) {
-    setCurrentPage(currentPage - 1);
+  if (state.currentPage >= 1) {
+    State.update({ currentPage: state.currentPage - 1 });
+    getWinnersPaginator(state.currentPage, 5);
   }
 };
+
+if (!state.loading) {
+  getWinnersPaginator(0, 5);
+} else {
+  if (state.winners.length > 0) {
+    console.log(2);
+    const difference = itemsPerPage - state.winners.length;
+    let elements = state.winners;
+    for (let i = 0; i < difference; i++) {
+      elements.push({
+        account: "",
+        bid: 0,
+        hat_amount: 0,
+      });
+    }
+    State.update({ winners: elements });
+  }
+}
 
 // Styled components for UI elements
 const Wrapper = styled.div`
@@ -254,7 +281,7 @@ return (
       <ItemContainer>
         <ItemHeader>
           <ItemTitle>
-            <label>List Of Winners</label>
+            <label>Winners who have claimed their $HATs</label>
           </ItemTitle>
         </ItemHeader>
         <ItemBody>
@@ -274,23 +301,24 @@ return (
                 </tr>
               </thead>
               <tbody>
-                {currentItems.map((data, key) => {
-                  return (
-                    <>
-                      <tr style={{ height: "40px" }}>
-                        <td>{data.account ? data.account : ""}</td>
-                        <td>
-                          {data.bid ? (data.bid / 1e24).toFixed(1) + "⋈" : ""}
-                        </td>
-                        <td>{data.hat_amount ? data.hat_amount : " "}</td>
-                      </tr>
-                    </>
-                  );
-                })}
+                {state.winners.length > 0 &&
+                  state.winners.map((data, key) => {
+                    return (
+                      <>
+                        <tr style={{ height: "40px" }}>
+                          <td>{data.account ? data.account : ""}</td>
+                          <td>
+                            {data.bid ? (data.bid / 1e24).toFixed(1) + "⋈" : ""}
+                          </td>
+                          <td>{data.hat_amount ? data.hat_amount : " "}</td>
+                        </tr>
+                      </>
+                    );
+                  })}
               </tbody>
             </table>
           </div>
-          {winners.length > 0 && (
+          {true && (
             <div
               className="row"
               style={{
@@ -303,10 +331,7 @@ return (
                 className="col-4"
                 style={{ display: "flex", "justify-content": "start" }}
               >
-                <CircleButton
-                  onClick={handlePreviousPage}
-                  disabled={currentPage === 1}
-                >
+                <CircleButton onClick={handlePreviousPage}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -327,16 +352,13 @@ return (
                   "font-size": "19px",
                 }}
               >
-                {currentPage}/{totalPages}
+                {state.currentPage + 1}/{totalPages}
               </div>
               <div
                 className="col-4"
                 style={{ display: "flex", "justify-content": "end" }}
               >
-                <CircleButton
-                  onClick={handleNextPage}
-                  disabled={currentPage === totalPages}
-                >
+                <CircleButton onClick={handleNextPage}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
